@@ -1,0 +1,58 @@
+version: "3.7"
+
+services:
+    nginx:
+        container_name: nginx
+        image: nginx
+        build: requirements/nginx
+        hostname: localhost
+        volumes:
+           - wp:/var/www/wordpress
+        networks:
+           - app-network
+        ports:
+           - "443:443"
+        restart: always
+
+    mariadb:
+        container_name: mariadb
+        image: mariadb
+        build: ./requirements/mariadb
+        hostname: localhost
+        volumes:
+           - db:/var/lib/mysql
+        env_file: .env
+        networks:
+           - app-network
+        restart: always
+
+    wordpress:
+        container_name: wordpress
+        image: wordpress
+        build: requirements/wordpress
+        hostname: localhost
+        volumes:
+           - wp:/var/www/wordpress
+        env_file: .env
+        networks:
+           - app-network
+        depends_on:
+           - mariadb
+        restart: always
+
+volumes:
+    db:
+         driver: local
+         driver_opts:
+            type: none
+            o: bind
+            device: /tmp/data/db
+    wp:
+         driver: local
+         driver_opts:
+            type: none
+            o: bind
+            device: /tmp/data/wp
+networks:
+    app-network:
+        driver: bridge
